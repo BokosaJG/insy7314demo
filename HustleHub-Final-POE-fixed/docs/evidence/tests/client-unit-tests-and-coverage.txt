@@ -1,0 +1,93 @@
+# $ npx vitest run --coverage   (client component tests)
+# 2026-11-07T06:31:34Z
+
+ RUN  v2.1.9 /home/claude/final/hustlehub-plus-client
+      Coverage enabled with v8
+
+ ✓ src/dashboard.test.jsx > IncomeDashboard > shows income, estimated tax and after-tax income for the tax year
+ ✓ src/dashboard.test.jsx > IncomeDashboard > requests the current tax year first, then the chosen one when the select changes
+ ✓ src/dashboard.test.jsx > IncomeDashboard > offers the supported tax years labelled like 2026/27
+ ✓ src/dashboard.test.jsx > IncomeDashboard > shows the projection with a set-aside suggestion when tax is due
+ ✓ src/dashboard.test.jsx > IncomeDashboard > says nothing needs setting aside when the projection is below the threshold
+ ✓ src/dashboard.test.jsx > IncomeDashboard > hides the projection for a finished tax year
+ ✓ src/dashboard.test.jsx > IncomeDashboard > explains the calculation bracket by bracket and ends with the estimated tax
+ ✓ src/dashboard.test.jsx > IncomeDashboard > always shows the estimate disclaimer
+ ✓ src/dashboard.test.jsx > IncomeDashboard > shows an empty-state message when there is no income yet
+ ✓ src/dashboard.test.jsx > IncomeDashboard > shows the API error message instead of crashing
+ ✓ src/dashboard.test.jsx > IncomeDashboard > copes with an unexpected response shape (e.g. a list) without crashing
+ ✓ src/dashboard.test.jsx > IncomeDashboard - request ordering > ignores a slow response for a previous tax year that arrives after a newer one
+ ✓ src/dashboard.test.jsx > MonthlyChart > is an accessible image whose label includes the total, with 12 bars carrying exact values
+ ✓ src/dashboard.test.jsx > MonthlyChart > the tallest bar fills the plot area and empty months have zero height
+ ✓ src/dashboard.test.jsx > MonthlyChart > draws sensible axis labels when there is no income at all
+ ✓ src/dashboard.test.jsx > GigBars > scales each bar against the top gig
+ ✓ src/dashboard.test.jsx > chart helpers > niceMax(0) = 100
+ ✓ src/dashboard.test.jsx > chart helpers > niceMax(-5) = 100
+ ✓ src/dashboard.test.jsx > chart helpers > niceMax(1) = 1
+ ✓ src/dashboard.test.jsx > chart helpers > niceMax(7) = 10
+ ✓ src/dashboard.test.jsx > chart helpers > niceMax(360000) = 500000
+ ✓ src/dashboard.test.jsx > chart helpers > niceMax(1200) = 2000
+ ✓ src/dashboard.test.jsx > chart helpers > niceMax(99) = 100
+ ✓ src/dashboard.test.jsx > chart helpers > compactRand(0) = R0
+ ✓ src/dashboard.test.jsx > chart helpers > compactRand(850) = R850
+ ✓ src/dashboard.test.jsx > chart helpers > compactRand(1000) = R1k
+ ✓ src/dashboard.test.jsx > chart helpers > compactRand(1500) = R1.5k
+ ✓ src/dashboard.test.jsx > chart helpers > compactRand(250000) = R250k
+ ✓ src/dashboard.test.jsx > chart helpers > compactRand(1200000) = R1.2m
+ ✓ src/App.test.jsx > App > shows the sign-in page when logged out
+ ✓ src/App.test.jsx > App > shows client navigation only, with no freelancer pages
+ ✓ src/App.test.jsx > App > shows freelancer navigation including My gigs and Earnings
+ ✓ src/App.test.jsx > App > sends the JWT with requests and clears the session on sign out
+ ✓ src/App.test.jsx > App > freelancers land on the Income & tax dashboard first and can still reach Earnings
+ ✓ src/App.test.jsx > App > only Admins get the Audit log page
+ ✓ src/App.test.jsx > App > signing out asks the API to revoke the token, using that token
+ ✓ src/App.test.jsx > App > still signs out locally when the revoke request fails
+ ✓ src/App.test.jsx > App > an expired token signs the user out WITHOUT calling logout
+ ✓ src/pages.test.jsx > BrowseGigs > lets a client see gigs and book one, showing the payment reference
+ ✓ src/pages.test.jsx > BrowseGigs > shows Delete, not Book now, to an admin
+ ✓ src/pages.test.jsx > BrowseGigs > shows an empty state when there are no gigs
+ ✓ src/pages.test.jsx > GigForm > rejects an invalid price and does not submit
+ ✓ src/pages.test.jsx > GigForm > submits a valid gig with the price as a number
+ ✓ src/pages.test.jsx > Payments > shows a freelancer their income summary and transactions
+ ✓ src/AuthPage.test.jsx > AuthPage > renders the sign-in form by default
+ ✓ src/AuthPage.test.jsx > AuthPage > switches to registration and shows the role choices
+ ✓ src/AuthPage.test.jsx > AuthPage > blocks a weak password without calling the API
+ ✓ src/AuthPage.test.jsx > AuthPage > signs in and passes the token and user to the app
+ ✓ src/AuthPage.test.jsx > AuthPage > shows the API error for wrong credentials
+ ✓ src/adminPages.test.jsx > AuditLog (Admin) > lists events with role, IP and a readable summary of the details
+ ✓ src/adminPages.test.jsx > AuditLog (Admin) > highlights failures and lockouts but not routine events
+ ✓ src/adminPages.test.jsx > AuditLog (Admin) > requests the newest 100 events and filters by the chosen event
+ ✓ src/adminPages.test.jsx > AuditLog (Admin) > Refresh reloads the data
+ ✓ src/adminPages.test.jsx > AuditLog (Admin) > shows an empty state and an error state
+ ✓ src/validation.test.js > validation > accepts a valid email and rejects bad ones
+ ✓ src/validation.test.js > validation > enforces the password rules used by the API
+ ✓ src/validation.test.js > validation > checks name length
+ ✓ src/validation.test.js > validation > validates gig fields, including price limits and decimals
+
+ Test Files  6 passed (6)
+      Tests  58 passed (58)
+   Start at  06:31:34
+   Duration  9.28s (transform 300ms, setup 469ms, collect 1.19s, tests 3.00s, environment 2.41s, prepare 526ms)
+
+ % Coverage report from v8
+-------------------|---------|----------|---------|---------|-------------------------
+File               | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s       
+-------------------|---------|----------|---------|---------|-------------------------
+All files          |   83.11 |    87.75 |   83.33 |   83.11 |                         
+ App.jsx           |   91.54 |    83.33 |      75 |   91.54 | 19-20,28-31             
+ AuthPage.jsx      |   93.15 |    89.28 |   66.66 |   93.15 | 23-27                   
+ ErrorBoundary.jsx |       0 |        0 |       0 |       0 | 1-22                    
+ adminPages.jsx    |     100 |       85 |     100 |     100 | 24-25,58                
+ api.js            |   85.71 |       70 |     100 |   85.71 | 31-32,38-39,41-42       
+ dashboard.jsx     |     100 |     98.3 |     100 |     100 | 54                      
+ pages.jsx         |   55.69 |       80 |   63.63 |   55.69 | 20-23,61,78-126,130-152 
+ shared.jsx        |     100 |       84 |     100 |     100 | 19,30-31,44             
+ validation.js     |     100 |    94.73 |     100 |     100 | 8,20                    
+-------------------|---------|----------|---------|---------|-------------------------
+
+=============================== Coverage summary ===============================
+Statements   : 83.11% ( 512/616 )
+Branches     : 87.75% ( 215/245 )
+Functions    : 83.33% ( 40/48 )
+Lines        : 83.11% ( 512/616 )
+================================================================================
+exit code: 0

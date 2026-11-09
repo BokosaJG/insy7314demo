@@ -1,0 +1,22 @@
+$ curl -ski https://localhost:4000/health
+HTTP/1.1 200 OK
+X-Request-Id: cce5aed0-f3d7-4bf8-a534-306216f61f86
+Content-Security-Policy: default-src 'none';script-src 'none';style-src 'none';img-src 'none';font-src 'none';connect-src 'none';media-src 'none';object-src 'none';frame-src 'none';worker-src 'none';manifest-src 'none';base-uri 'none';form-action 'none';frame-ancestors 'none';upgrade-insecure-requests
+Cross-Origin-Opener-Policy: same-origin
+Cross-Origin-Resource-Policy: same-site
+Origin-Agent-Cluster: ?1
+Referrer-Policy: no-referrer
+Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+X-Content-Type-Options: nosniff
+X-DNS-Prefetch-Control: off
+X-Download-Options: noopen
+X-Frame-Options: DENY
+X-Permitted-Cross-Domain-Policies: none
+X-XSS-Protection: 0
+Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()
+Cache-Control: no-store
+Pragma: no-cache
+Content-Type: application/json; charset=utf-8
+Content-Length: 34
+
+{"status":"OK","protocol":"HTTPS"}

@@ -1,0 +1,26 @@
+$ # 6 wrong-password logins for the same account
+--- attempt 1
+HTTP/1.1 401 Unauthorized
+RateLimit: limit=5, remaining=4, reset=900
+{"error":"Invalid email or password"}
+--- attempt 2
+HTTP/1.1 401 Unauthorized
+RateLimit: limit=5, remaining=3, reset=900
+{"error":"Invalid email or password"}
+--- attempt 3
+HTTP/1.1 401 Unauthorized
+RateLimit: limit=5, remaining=2, reset=900
+{"error":"Invalid email or password"}
+--- attempt 4
+HTTP/1.1 401 Unauthorized
+RateLimit: limit=5, remaining=1, reset=899
+{"error":"Invalid email or password"}
+--- attempt 5
+HTTP/1.1 401 Unauthorized
+RateLimit: limit=5, remaining=0, reset=899
+{"error":"Invalid email or password"}
+--- attempt 6
+HTTP/1.1 429 Too Many Requests
+RateLimit: limit=5, remaining=0, reset=899
+Retry-After: 899
+{"error":"Too many failed login attempts for this account. Please try again later.","retryAfterSeconds":899}

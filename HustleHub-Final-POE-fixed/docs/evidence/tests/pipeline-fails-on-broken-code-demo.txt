@@ -1,0 +1,16 @@
+# DEMONSTRATION: a deliberate bug (18% bracket changed to 19%) must fail the pipeline
+# $ npx jest
+FAIL tests/tax.test.js
+  ● calculateTax - SARS progressive tax with primary rebate › tax threshold is exactly rebate / 18% (R99 000 in 2027, R95 750 in 2026)
+    Expected: 0
+    Received: 957.5
+  ● calculateTax - SARS progressive tax with primary rebate › R237100 in tax year 2026: tax before rebate = R42678 (matches SARS bracket formula)
+    Expected: 42678
+    Received: 45049
+  ● calculateTax - SARS progressive tax with primary rebate › R1817000 in tax year 2026: tax before rebate = R644489 (matches SARS bracket formula)
+    Expected: 644489
+    Received: 646860
+Test Suites: 1 failed, 7 passed, 8 total
+Tests:       3 failed, 101 passed, 104 total
+exit code of jest: 1   (non-zero => the GitHub Actions step fails => the job fails => the pipeline is red)
+# After restoring the correct value the same command exits 0.

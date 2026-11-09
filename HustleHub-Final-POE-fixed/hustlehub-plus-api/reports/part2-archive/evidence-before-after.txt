@@ -1,0 +1,13 @@
+Same Postman collection (HustleHub-Plus-Part2) run against both versions of the API
+
+                                   requests   assertions   FAILED
+Workload 1 code (before)                120          469       82
+Workload 2 code (after)                 116          469        0
+
+Substantive gaps the tests exposed in the original code:
+  * 10.1 / 10.3 / 10.4  no rate limiting  -> no 429 on login, register or booking
+  * 7.1 / 7.2           CSP not restrictive; no Permissions-Policy / no-store / request id
+  * 2.11 / 4.3          XSS stripping left script *contents* behind as text
+  * 2.5 / 5.5           no 72-char password cap; 3-decimal prices accepted
+  * 2.19                non-JSON Content-Type not rejected with 415
+  * 2.x / 5.x / 6.x    validation errors had no field-level details

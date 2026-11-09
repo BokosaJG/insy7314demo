@@ -1,0 +1,189 @@
+# $ npx jest --coverage   (API unit tests)
+# 2026-11-07T06:31:25Z
+PASS tests/api.test.js
+  public endpoints and security headers
+    ✓ GET /health is OK and carries Helmet + CSP headers, no X-Powered-By (36 ms)
+    ✓ unknown route -> JSON 404 without internals (7 ms)
+    ✓ POST with a non-JSON content type is refused (415) (4 ms)
+    ✓ malformed JSON -> 400 with a generic message, no stack trace or path (13 ms)
+  input validation on login
+    ✓ missing fields -> 400 with field names only (no echoed input) (8 ms)
+    ✓ NoSQL operator object as email is rejected before the database is touched (9 ms)
+  authentication / authorisation on the final-part endpoints
+    ✓ GET /api/transactions/dashboard without a token -> 401 (6 ms)
+    ✓ GET /api/admin/audit-logs without a token -> 401 (2 ms)
+    ✓ POST /api/auth/logout without a token -> 401 (4 ms)
+    ✓ dashboard is Freelancer only (Client and Admin get 403) (13 ms)
+    ✓ audit log is Admin only (9 ms)
+    ✓ a revoked token (old tokenVersion) is refused on every protected route (4 ms)
+  GET /api/transactions/dashboard
+    ✓ returns income, monthly buckets and tax for the freelancer (11 ms)
+    ✓ the query is always scoped to the logged-in freelancer (id from the token, not the URL) (4 ms)
+    ✓ defaults to the current tax year (3 ms)
+    ✓ invalid query taxYear=1999 -> 400 and the value is not echoed (4 ms)
+    ✓ invalid query taxYear=abc -> 400 and the value is not echoed (5 ms)
+    ✓ invalid query taxYear=2027.5 -> 400 and the value is not echoed (7 ms)
+    ✓ invalid query taxYear=2026&taxYear=2027 -> 400 and the value is not echoed (11 ms)
+    ✓ invalid query taxYear=%3Cscript%3E -> 400 and the value is not echoed (3 ms)
+    ✓ database failure -> generic 500, nothing leaked (5 ms)
+  GET /api/admin/audit-logs
+    ✓ returns entries newest first, honouring limit and event filter (9 ms)
+    ✓ invalid query limit=0 -> 400 (3 ms)
+    ✓ invalid query limit=101 -> 400 (3 ms)
+    ✓ invalid query limit=abc -> 400 (3 ms)
+    ✓ invalid query event=x%24ne -> 400 (3 ms)
+    ✓ invalid query event=Auth.Login -> 400 (3 ms)
+    ✓ invalid query event=a;b -> 400 (8 ms)
+    ✓ operator injection through the query string cannot reach the database filter (3 ms)
+  POST /api/auth/logout
+    ✓ revokes the caller's tokens (3 ms)
+
+PASS tests/authController.test.js
+  login
+    ✓ success: token carries id, role AND tokenVersion; counters reset only if needed; audited (5 ms)
+    ✓ success after earlier failures clears the failure counter and any expired lock (3 ms)
+    ✓ wrong password: 401 generic message and the failure counter is incremented atomically (2 ms)
+    ✓ reaching the threshold sets lockUntil ~15 minutes ahead, resets the counter and audits the lock (2 ms)
+    ✓ LOCKED account: 423 even with the CORRECT password, no token, counter not touched (3 ms)
+    ✓ unknown email: identical 401 body, nothing to increment, still audited as a failure (309 ms)
+    ✓ database errors go to next() (central handler) (1 ms)
+  logout (token revocation)
+    ✓ bumps tokenVersion for the authenticated user and audits it (1 ms)
+  register
+    ✓ duplicate email -> 409 without creating anything (1 ms)
+    ✓ success stores a bcrypt HASH (never the password) and returns only safe fields (649 ms)
+
+PASS tests/tax.test.js
+  calculateTax - SARS progressive tax with primary rebate
+    ✓ income below the tax threshold pays no tax (rebate wipes out the 18% bracket) (1 ms)
+    ✓ tax threshold is exactly rebate / 18% (R99 000 in 2027, R95 750 in 2026) (1 ms)
+    ✓ zero income gives zero everything (4 ms)
+    ✓ R245100 in tax year 2027: tax before rebate = R44118 (matches SARS bracket formula)
+    ✓ R383100 in tax year 2027: tax before rebate = R79998 (matches SARS bracket formula)
+    ✓ R887000 in tax year 2027: tax before rebate = R259783 (matches SARS bracket formula)
+    ✓ R1878600 in tax year 2027: tax before rebate = R666339 (matches SARS bracket formula)
+    ✓ R237100 in tax year 2026: tax before rebate = R42678 (matches SARS bracket formula) (1 ms)
+    ✓ R1817000 in tax year 2026: tax before rebate = R644489 (matches SARS bracket formula)
+    ✓ worked example: R360 000 in 2027 = R73 992 before rebate, R56 172 after
+    ✓ 2027 tables differ from 2026 for the same income (inflation adjustment) (1 ms)
+    ✓ bracket breakdown adds up to the totals and uses each rate only inside its bracket (2 ms)
+    ✓ top bracket has no upper limit and the result is JSON-safe (null, not Infinity)
+    ✓ tax never goes down when income goes up (monotonic) and effective rate stays below the marginal rate (36 ms)
+    ✓ cents are rounded consistently
+    ✓ rejects invalid income -1 (3 ms)
+    ✓ rejects invalid income NaN (1 ms)
+    ✓ rejects invalid income Infinity
+    ✓ rejects invalid income "5000" (1 ms)
+    ✓ rejects invalid income null
+    ✓ rejects invalid income undefined (1 ms)
+    ✓ rejects a tax year without a table (1 ms)
+  tax year helpers
+    ✓ SA tax year runs 1 March - end of February and is named after the year it ends
+    ✓ taxYearRange is a half-open interval [1 Mar, 1 Mar) (1 ms)
+    ✓ isSupportedTaxYear
+  projectAnnual
+    ✓ scales income so far up to a full year and taxes that (1 ms)
+    ✓ no projection for a finished or future tax year
+    ✓ no projection in the first month (too little data to scale up safely)
+
+PASS tests/transactionController.test.js
+  getTransactions - data is scoped by role
+    ✓ Client sees filter {"client":"64b7f0f0f0f0f0f0f0f0f0f0"} (2 ms)
+    ✓ Freelancer sees filter {"freelancer":"64b7f0f0f0f0f0f0f0f0f0f0"} (1 ms)
+    ✓ Admin sees filter {}
+    ✓ errors are forwarded to the error handler
+  getMyIncome
+    ✓ returns the aggregate for the freelancer, matching only their id (1 ms)
+    ✓ no transactions -> zeros (1 ms)
+
+PASS tests/authenticateToken.test.js
+  authenticateToken
+    ✓ 401 when there is no Authorization header (1 ms)
+    ✓ 401 when the scheme is not Bearer
+    ✓ valid token + matching tokenVersion: user is attached from the DATABASE (role not trusted from token) (2 ms)
+    ✓ REVOKED: tokenVersion in token is older than the user's -> 403 generic message (1 ms)
+    ✓ tokens from before the feature (no "tv" claim) are rejected (1 ms)
+    ✓ deleted user -> 403 (1 ms)
+    ✓ wrong signing secret -> 403 (and the DB is never queried) (5 ms)
+    ✓ expired token -> 403 with the same generic message (1 ms)
+    ✓ "alg: none" and HS512 tokens are rejected (algorithm is pinned to HS256) (1 ms)
+    ✓ payload id that is not an ObjectId (e.g. a NoSQL operator) is rejected before any query (1 ms)
+    ✓ database failure is passed to the error handler, not leaked (1 ms)
+  requireRole
+    ✓ allows a listed role
+    ✓ allows any of several roles (1 ms)
+    ✓ 403 for an unlisted role and the denial is logged
+    ✓ 403 when there is no user at all (1 ms)
+
+PASS tests/logger.test.js
+  log redaction
+    ✓ secrets are replaced by key name, at any depth (1 ms)
+    ✓ long strings are truncated, deep objects are cut off, arrays are capped
+    ✓ primitives, null and dates are handled
+    ✓ logging is silent and does not throw under test; cloud transport is off without a token (1 ms)
+
+PASS tests/audit.test.js
+  shortHash (privacy-preserving subject id)
+    ✓ is 12 hex chars, stable, case/space-insensitive and does not contain the e-mail (1 ms)
+  audit()
+    ✓ writes the audit record and the structured log line, with secrets redacted from details
+    ✓ an explicit actor (login has no req.user yet) and level are honoured
+    ✓ a failing database write NEVER breaks the request - it is logged as an error instead (1 ms)
+
+PASS tests/dashboard.test.js
+  buildDashboard
+    ✓ empty year: zeros everywhere, 12 months, no gigs (2 ms)
+    ✓ March is the first month and February the last (SA tax year order) (1 ms)
+    ✓ totals, average and money rounding
+    ✓ groups income by gig title, sorts by income and keeps the top five (1 ms)
+    ✓ bookings whose gig title is unknown are labelled instead of crashing (1 ms)
+    ✓ includes tax for the gross income, the period and a disclaimer
+    ✓ projection exists for the running tax year and not for a finished one (1 ms)
+
+---------------------------|---------|----------|---------|---------|-------------------------
+File                       | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s       
+---------------------------|---------|----------|---------|---------|-------------------------
+All files                  |    91.7 |    82.12 |   85.24 |   91.64 |                         
+ config                    |   86.66 |    77.08 |   85.71 |    87.5 |                         
+  logger.js                |   84.31 |    77.08 |      80 |   85.36 | 71,91-96,114            
+  taxTables.js             |     100 |      100 |     100 |     100 |                         
+ controllers               |   95.14 |    97.67 |    92.3 |   94.79 |                         
+  adminController.js       |    90.9 |      100 |     100 |      90 | 16                      
+  authController.js        |   94.82 |    96.77 |   85.71 |   94.64 | 60,139,145              
+  transactionController.js |   97.05 |      100 |     100 |   96.66 | 39                      
+ middleware                |   88.48 |    79.69 |    91.3 |   88.38 |                         
+  authenticateToken.js     |     100 |      100 |     100 |     100 |                         
+  errorHandler.js          |   70.96 |    75.55 |     100 |   71.42 | 41,47,50,55,58,61,68,73 
+  rateLimiters.js          |      75 |    27.77 |      60 |   73.91 | 32-38,93                
+  requestId.js             |     100 |      100 |     100 |     100 |                         
+  requestLogger.js         |     100 |      100 |     100 |     100 |                         
+  requireJson.js           |     100 |      100 |     100 |     100 |                         
+  sanitizeRequest.js       |    90.9 |     91.3 |     100 |   90.62 | 34-35,53                
+  securityHeaders.js       |   91.66 |       50 |     100 |   91.66 | 34                      
+  validate.js              |     100 |      100 |     100 |     100 |                         
+ utils                     |     100 |    88.57 |     100 |     100 |                         
+  audit.js                 |     100 |    66.66 |     100 |     100 | 13-16                   
+  dashboard.js             |     100 |    85.71 |     100 |     100 | 16                      
+  sanitize.js              |     100 |      100 |     100 |     100 |                         
+  tax.js                   |     100 |    95.45 |     100 |     100 | 87                      
+ validators                |   85.29 |        0 |       0 |   85.29 |                         
+  adminValidators.js       |     100 |      100 |     100 |     100 |                         
+  authValidators.js        |      75 |      100 |       0 |      75 | 27,53                   
+  bookingValidators.js     |     100 |      100 |     100 |     100 |                         
+  commonValidators.js      |     100 |      100 |     100 |     100 |                         
+  gigValidators.js         |   72.72 |        0 |       0 |   72.72 | 25-29                   
+  transactionValidators.js |     100 |      100 |     100 |     100 |                         
+---------------------------|---------|----------|---------|---------|-------------------------
+
+=============================== Coverage summary ===============================
+Statements   : 91.7% ( 409/446 )
+Branches     : 82.12% ( 216/263 )
+Functions    : 85.24% ( 52/61 )
+Lines        : 91.64% ( 373/407 )
+================================================================================
+Test Suites: 8 passed, 8 total
+Tests:       104 passed, 104 total
+Snapshots:   0 total
+Time:        4.597 s, estimated 5 s
+Ran all test suites.
+exit code: 0

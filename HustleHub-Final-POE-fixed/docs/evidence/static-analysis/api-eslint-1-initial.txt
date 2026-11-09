@@ -1,0 +1,36 @@
+# ESLint + eslint-plugin-security - API - FIRST RUN (before fixes)
+# 2026-11-06T23:42:36Z
+
+/home/claude/final/hustlehub-plus-api/config/logger.js
+  36:5   warning  Generic Object Injection Sink        security/detect-object-injection
+  46:5   warning  Generic Object Injection Sink        security/detect-object-injection
+  46:66  warning  Function Call Object Injection Sink  security/detect-object-injection
+
+/home/claude/final/hustlehub-plus-api/controllers/authController.js
+  19:22  warning  Function Call Object Injection Sink  security/detect-object-injection
+
+/home/claude/final/hustlehub-plus-api/index.js
+  119:28  warning  Found readFileSync from package "fs" with non literal argument at index 0  security/detect-non-literal-fs-filename
+  119:60  warning  Found readFileSync from package "fs" with non literal argument at index 0  security/detect-non-literal-fs-filename
+
+/home/claude/final/hustlehub-plus-api/middleware/errorHandler.js
+  18:1  warning  Unused eslint-disable directive (no problems were reported from 'no-unused-vars')
+
+/home/claude/final/hustlehub-plus-api/middleware/rateLimiters.js
+  16:22  warning  Function Call Object Injection Sink  security/detect-object-injection
+
+/home/claude/final/hustlehub-plus-api/middleware/sanitizeRequest.js
+  47:7  warning  Generic Object Injection Sink  security/detect-object-injection
+
+/home/claude/final/hustlehub-plus-api/tests/logger.test.js
+  22:9  error  'deep' is never reassigned. Use 'const' instead  prefer-const
+
+/home/claude/final/hustlehub-plus-api/utils/sanitize.js
+  14:14  error  Unexpected control character(s) in regular expression: \x00, \x08, \x0b, \x0c, \x0e, \x1f  no-control-regex
+
+/home/claude/final/hustlehub-plus-api/utils/tax.js
+  38:17  warning  Variable Assigned to Object Injection Sink  security/detect-object-injection
+
+✖ 12 problems (2 errors, 10 warnings)
+  1 error and 1 warning potentially fixable with the `--fix` option.
+

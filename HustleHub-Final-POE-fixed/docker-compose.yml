@@ -1,0 +1,83 @@
+# HustleHub+ full stack: MongoDB + API (HTTPS) + React client (nginx).
+#
+#   cp .env.example .env      # then edit the secrets
+#   docker compose up --build
+#
+# Client:  http://localhost:8080        (the browser only talks to this origin)
+# API:     https://localhost:4000       (published on loopback only, for Postman/Newman)
+# MongoDB: not published - reachable only from the API container.
+
+services:
+  mongo:
+    image: mongo:7.0
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER:?set MONGO_ROOT_USER in .env}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:?set MONGO_ROOT_PASSWORD in .env}
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+    security_opt:
+      - no-new-privileges:true
+
+  api:
+    image: hustlehub-plus-api:local
+    build:
+      context: ./hustlehub-plus-api
+    restart: unless-stopped
+    depends_on:
+      mongo:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      USE_HTTPS: "true"
+      TRUST_PROXY: "1"                      # nginx (client container) is one proxy hop in front
+      CLIENT_ORIGIN: ${CLIENT_ORIGIN:-http://localhost:8080}
+      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET (32+ random characters) in .env}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-1h}
+      MONGO_URI: mongodb://${MONGO_ROOT_USER}:${MONGO_ROOT_PASSWORD}@mongo:27017/hustlehub?authSource=admin
+      SEED_ADMIN: "true"
+      ADMIN_NAME: ${ADMIN_NAME:-Platform Admin}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:?set ADMIN_EMAIL in .env}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?set ADMIN_PASSWORD in .env}
+      ACCOUNT_LOCK_THRESHOLD: ${ACCOUNT_LOCK_THRESHOLD:-5}
+      ACCOUNT_LOCK_MINUTES: ${ACCOUNT_LOCK_MINUTES:-15}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      # Optional cloud logging (Better Stack). Leave empty to log to console + files only.
+      LOGTAIL_SOURCE_TOKEN: ${LOGTAIL_SOURCE_TOKEN:-}
+      LOGTAIL_INGESTING_HOST: ${LOGTAIL_INGESTING_HOST:-}
+    ports:
+      - "127.0.0.1:4000:4000"
+    volumes:
+      - api-logs:/app/logs
+      - api-certs:/app/certs
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+
+  client:
+    image: hustlehub-plus-client:local
+    build:
+      context: ./hustlehub-plus-client
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+
+volumes:
+  mongo-data:
+  api-logs:
+  api-certs:

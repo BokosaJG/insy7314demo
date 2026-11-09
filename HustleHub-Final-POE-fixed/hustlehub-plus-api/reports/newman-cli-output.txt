@@ -1,0 +1,1045 @@
+newman
+
+HustleHub+ Final POE - Full API Test Suite
+
+❏ 00 Health Check
+↳ 0.1 Health endpoint responds
+  GET https://localhost:4000/health [200 OK, 1.18kB, 33ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 200
+  ✓  Status is OK
+
+❏ 01 Auth - Success Cases
+↳ 1.1 Register Client
+  POST https://localhost:4000/api/auth/register [201 Created, 1.39kB, 363ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 201
+  ✓  Registered as Client
+  ✓  Password / hash is never returned
+
+↳ 1.2 Register Freelancer
+  POST https://localhost:4000/api/auth/register [201 Created, 1.4kB, 337ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 201
+  ✓  Registered as Freelancer
+  ✓  Password / hash is never returned
+
+↳ 1.3 Register second Freelancer (used for 'another user' tests)
+  POST https://localhost:4000/api/auth/register [201 Created, 1.4kB, 329ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 201
+  ✓  Registered as Freelancer
+  ✓  Password / hash is never returned
+
+↳ 1.4 Login Client
+  POST https://localhost:4000/api/auth/login [200 OK, 1.58kB, 318ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 200
+  ✓  Response contains a JWT
+  ✓  Role is Client
+  ✓  Password hash is never returned
+
+↳ 1.5 Login Freelancer
+  POST https://localhost:4000/api/auth/login [200 OK, 1.6kB, 360ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 200
+  ✓  Response contains a JWT
+  ✓  Role is Freelancer
+  ✓  Password hash is never returned
+
+↳ 1.6 Login second Freelancer
+  POST https://localhost:4000/api/auth/login [200 OK, 1.6kB, 325ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 200
+  ✓  Response contains a JWT
+  ✓  Role is Freelancer
+  ✓  Password hash is never returned
+
+↳ 1.7 Login seeded Admin
+  POST https://localhost:4000/api/auth/login [200 OK, 1.57kB, 328ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 200
+  ✓  Response contains a JWT
+  ✓  Role is Admin
+  ✓  Password hash is never returned
+
+↳ 1.8 Profile with valid token
+  GET https://localhost:4000/api/auth/profile [200 OK, 1.34kB, 11ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 200
+  ✓  Token payload returned
+
+❏ 02 Input Validation & Sanitisation
+↳ 2.1 Register - missing fields
+  POST https://localhost:4000/api/auth/register [400 Bad Request, 1.42kB, 10ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 400
+  ✓  Generic validation error returned
+  ✓  Error names the field: name
+  ✓  Submitted value is not echoed back
+
+↳ 2.2 Register - invalid email format
+  POST https://localhost:4000/api/auth/register [400 Bad Request, 1.33kB, 4ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 400
+  ✓  Generic validation error returned
+  ✓  Error names the field: email
+  ✓  Submitted value is not echoed back
+
+↳ 2.3 Register - password too short
+  POST https://localhost:4000/api/auth/register [400 Bad Request, 1.35kB, 4ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 400
+  ✓  Generic validation error returned
+  ✓  Error names the field: password
+  ✓  Submitted value is not echoed back
+
+↳ 2.4 Register - password has no number
+  POST https://localhost:4000/api/auth/register [400 Bad Request, 1.33kB, 5ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 400
+  ✓  Generic validation error returned
+  ✓  Error names the field: password
+  ✓  Submitted value is not echoed back
+
+↳ 2.5 Register - password longer than 72 chars
+  POST https://localhost:4000/api/auth/register [400 Bad Request, 1.35kB, 3ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 400
+  ✓  Generic validation error returned
+  ✓  Error names the field: password
+  ✓  Submitted value is not echoed back
+
+↳ 2.6 Register - invalid role
+  POST https://localhost:4000/api/auth/register [400 Bad Request, 1.33kB, 3ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 400
+  ✓  Generic validation error returned
+  ✓  Error names the field: role
+  ✓  Submitted value is not echoed back
+
+↳ 2.7 Register - privilege escalation (role Admin) rejected
+  POST https://localhost:4000/api/auth/register [400 Bad Request, 1.33kB, 4ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 400
+  ✓  Generic validation error returned
+  ✓  Error names the field: role
+  ✓  Submitted value is not echoed back
+
+↳ 2.8 Register - name is a number (wrong type)
+  POST https://localhost:4000/api/auth/register [400 Bad Request, 1.32kB, 5ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 400
+  ✓  Generic validation error returned
+  ✓  Error names the field: name
+  ✓  Submitted value is not echoed back
+
+↳ 2.9 Register - NoSQL operator object in email
+  POST https://localhost:4000/api/auth/register [400 Bad Request, 1.32kB, 5ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 400
+  ✓  Generic validation error returned
+  ✓  Error names the field: email
+  ✓  Submitted value is not echoed back
+
+↳ 2.10 Register - duplicate email
+  POST https://localhost:4000/api/auth/register [409 Conflict, 1.28kB, 15ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 409
+  ✓  Duplicate email error returned
+
+↳ 2.11 Register - XSS payload in name is stripped (stored XSS)
+  POST https://localhost:4000/api/auth/register [201 Created, 1.38kB, 325ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 201
+  ✓  Script tag and its contents removed from stored name
+
+↳ 2.12 Login - missing password
+  POST https://localhost:4000/api/auth/login [400 Bad Request, 1.32kB, 4ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 400
+  ✓  Generic validation error returned
+  ✓  Error names the field: password
+  ✓  Submitted value is not echoed back
+
+↳ 2.13 Login - malformed email
+  POST https://localhost:4000/api/auth/login [400 Bad Request, 1.33kB, 3ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 400
+  ✓  Generic validation error returned
+  ✓  Error names the field: email
+  ✓  Submitted value is not echoed back
+
+↳ 2.14 Login - NoSQL injection {"$gt": ""} on email and password
+  POST https://localhost:4000/api/auth/login [400 Bad Request, 1.37kB, 20ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 400
+  ✓  Generic validation error returned
+  ✓  Error names the field: email
+  ✓  Submitted value is not echoed back
+  ✓  No token issued
+
+↳ 2.15 Login - wrong password
+  POST https://localhost:4000/api/auth/login [401 Unauthorized, 1.26kB, 332ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 401
+  ✓  Generic credentials error
+
+↳ 2.16 Login - nonexistent user (same message: no user enumeration)
+  POST https://localhost:4000/api/auth/login [401 Unauthorized, 1.26kB, 341ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 401
+  ✓  Identical message to wrong password
+
+↳ 2.17 Request body - malformed JSON
+  POST https://localhost:4000/api/auth/login [400 Bad Request, 1.27kB, 4ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 400
+  ✓  Clear, safe message
+
+↳ 2.18 Request body - larger than 10kb limit
+  POST https://localhost:4000/api/auth/login [413 Payload Too Large, 1.28kB, 3ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 413
+  ✓  Payload too large message
+
+↳ 2.19 Request body - wrong Content-Type (text/plain)
+  POST https://localhost:4000/api/auth/login [415 Unsupported Media Type, 1.29kB, 2ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 415
+  ✓  Unsupported media type message
+
+❏ 03 Authentication - Unauthorised Access
+↳ 3.1 Gigs - no token
+  GET https://localhost:4000/api/gigs [401 Unauthorized, 1.27kB, 2ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 401
+  ✓  Token required message
+
+↳ 3.2 Bookings - no token
+  GET https://localhost:4000/api/bookings [401 Unauthorized, 1.27kB, 2ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 401
+
+↳ 3.3 Transactions - no token
+  GET https://localhost:4000/api/transactions [401 Unauthorized, 1.27kB, 6ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 401
+
+↳ 3.4 Profile - wrong auth scheme (not Bearer)
+  GET https://localhost:4000/api/auth/profile [401 Unauthorized, 1.27kB, 5ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 401
+
+↳ 3.5 Profile - garbage token
+  GET https://localhost:4000/api/auth/profile [403 Forbidden, 1.26kB, 4ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 403
+  ✓  Generic invalid-token message
+
+↳ 3.6 Forged token - role Admin signed with the wrong secret
+  ┌
+  │ `Using "CryptoJS" is deprecated. Use "require('crypto-
+  │ js')" instead.`
+  └
+  GET https://localhost:4000/api/auth/profile [403 Forbidden, 1.26kB, 3ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 403
+  ✓  Generic invalid-token message
+
+↳ 3.7 Forged token - alg:none (unsigned) rejected
+  ┌
+  │ `Using "CryptoJS" is deprecated. Use "require('crypto-
+  │ js')" instead.`
+  └
+  GET https://localhost:4000/api/auth/profile [403 Forbidden, 1.26kB, 3ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 403
+  ✓  Generic invalid-token message
+
+↳ 3.8 Tampered token - Client payload edited to Admin, original signature kept
+  ┌
+  │ `Using "CryptoJS" is deprecated. Use "require('crypto-
+  │ js')" instead.`
+  └
+  GET https://localhost:4000/api/auth/profile [403 Forbidden, 1.26kB, 4ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 403
+  ✓  Generic invalid-token message
+
+❏ 04 Gigs - Success Cases
+↳ 4.1 Freelancer creates a gig (extra fields 'freelancer' and '_id' are ignored)
+  POST https://localhost:4000/api/gigs [201 Created, 1.56kB, 17ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 201
+  ✓  Owner is taken from the JWT, not the request body (mass assignment blocked)
+
+↳ 4.2 Freelancer creates a second gig
+  POST https://localhost:4000/api/gigs [201 Created, 1.55kB, 12ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 201
+
+↳ 4.3 XSS payload in gig title/description is stripped
+  POST https://localhost:4000/api/gigs [201 Created, 1.52kB, 11ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 201
+  ✓  No HTML or script left in stored title
+  ✓  Script block and its contents removed from description
+
+↳ 4.4 Any logged-in user can browse gigs
+  GET https://localhost:4000/api/gigs [200 OK, 3.09kB, 17ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 200
+  ✓  Gigs returned as an array
+  ✓  Freelancer email / hash not exposed
+
+↳ 4.5 NoSQL operators in the query string are neutralised
+  GET https://localhost:4000/api/gigs?title[$ne]=x&$where=1 [200 OK, 3.09kB, 14ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 200
+  ✓  Request handled normally, no server error
+
+↳ 4.6 Freelancer lists own gigs
+  GET https://localhost:4000/api/gigs/mine [200 OK, 2.04kB, 7ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 200
+  ✓  Contains the new gig
+
+↳ 4.7 Get one gig by id
+  GET https://localhost:4000/api/gigs/6aeec55927d42054d8ef49b2 [200 OK, 1.55kB, 10ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 200
+  ✓  Correct gig returned
+
+↳ 4.8 Owner updates own gig (price becomes 600)
+  PUT https://localhost:4000/api/gigs/6aeec55927d42054d8ef49b2 [200 OK, 1.55kB, 18ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 200
+  ✓  Gig updated
+
+❏ 05 Gigs - Failure Cases (invalid input, wrong role, another user's gig)
+↳ 5.1 Create gig - missing fields
+  POST https://localhost:4000/api/gigs [400 Bad Request, 1.38kB, 5ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 400
+  ✓  Generic validation error returned
+  ✓  Error names the field: description
+  ✓  Submitted value is not echoed back
+
+↳ 5.2 Create gig - price sent as a string
+  POST https://localhost:4000/api/gigs [400 Bad Request, 1.33kB, 5ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 400
+  ✓  Generic validation error returned
+  ✓  Error names the field: price
+  ✓  Submitted value is not echoed back
+
+↳ 5.3 Create gig - negative price
+  POST https://localhost:4000/api/gigs [400 Bad Request, 1.34kB, 7ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 400
+  ✓  Generic validation error returned
+  ✓  Error names the field: price
+  ✓  Submitted value is not echoed back
+
+↳ 5.4 Create gig - price above maximum
+  POST https://localhost:4000/api/gigs [400 Bad Request, 1.34kB, 6ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 400
+  ✓  Generic validation error returned
+  ✓  Error names the field: price
+  ✓  Submitted value is not echoed back
+
+↳ 5.5 Create gig - price with 3 decimal places
+  POST https://localhost:4000/api/gigs [400 Bad Request, 1.34kB, 6ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 400
+  ✓  Generic validation error returned
+  ✓  Error names the field: price
+  ✓  Submitted value is not echoed back
+
+↳ 5.6 Create gig - title too short
+  POST https://localhost:4000/api/gigs [400 Bad Request, 1.35kB, 7ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 400
+  ✓  Generic validation error returned
+  ✓  Error names the field: title
+  ✓  Submitted value is not echoed back
+
+↳ 5.7 Create gig - description over 1000 characters
+  POST https://localhost:4000/api/gigs [400 Bad Request, 1.36kB, 6ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 400
+  ✓  Generic validation error returned
+  ✓  Error names the field: description
+  ✓  Submitted value is not echoed back
+
+↳ 5.8 Create gig - NoSQL operator object as title
+  POST https://localhost:4000/api/gigs [400 Bad Request, 1.32kB, 13ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 400
+  ✓  Generic validation error returned
+  ✓  Error names the field: title
+  ✓  Submitted value is not echoed back
+
+↳ 5.9 Create gig - title is only HTML (empty after sanitising)
+  POST https://localhost:4000/api/gigs [400 Bad Request, 1.35kB, 8ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 400
+  ✓  Generic validation error returned
+  ✓  Error names the field: title
+  ✓  Submitted value is not echoed back
+
+↳ 5.10 Get gig - malformed id
+  GET https://localhost:4000/api/gigs/not-an-id [400 Bad Request, 1.32kB, 7ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 400
+  ✓  Generic validation error returned
+  ✓  Error names the field: id
+  ✓  Submitted value is not echoed back
+
+↳ 5.11 Get gig - valid id that does not exist
+  GET https://localhost:4000/api/gigs/000000000000000000000000 [404 Not Found, 1.25kB, 10ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 404
+  ✓  Not found message
+
+↳ 5.12 WRONG ROLE - Client cannot create a gig
+  POST https://localhost:4000/api/gigs [403 Forbidden, 1.29kB, 6ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 403
+  ✓  Permission error
+
+↳ 5.13 WRONG ROLE - Client cannot list 'my gigs'
+  GET https://localhost:4000/api/gigs/mine [403 Forbidden, 1.29kB, 6ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 403
+
+↳ 5.14 WRONG ROLE - Client cannot update a gig
+  PUT https://localhost:4000/api/gigs/6aeec55927d42054d8ef49b2 [403 Forbidden, 1.29kB, 6ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 403
+
+↳ 5.15 WRONG ROLE - Client cannot delete a gig
+  DELETE https://localhost:4000/api/gigs/6aeec55927d42054d8ef49b2 [403 Forbidden, 1.29kB, 6ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 403
+
+↳ 5.16 ANOTHER USER'S GIG - second Freelancer cannot update it
+  PUT https://localhost:4000/api/gigs/6aeec55927d42054d8ef49b2 [403 Forbidden, 1.27kB, 8ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 403
+  ✓  Ownership error
+
+↳ 5.17 ANOTHER USER'S GIG - second Freelancer cannot delete it
+  DELETE https://localhost:4000/api/gigs/6aeec55927d42054d8ef49b2 [403 Forbidden, 1.27kB, 8ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 403
+  ✓  Ownership error
+
+↳ 5.18 Proof the attacked gig is unchanged
+  GET https://localhost:4000/api/gigs/6aeec55927d42054d8ef49b2 [200 OK, 1.55kB, 18ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 200
+  ✓  Title and price are still the owner's values
+
+↳ 5.19 Create gig - no token
+  POST https://localhost:4000/api/gigs [401 Unauthorized, 1.27kB, 3ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 401
+
+❏ 06 Bookings & Transactions
+↳ 6.1 Client books a gig (client-supplied 'amount'/'freelancer' ignored)
+  POST https://localhost:4000/api/bookings [201 Created, 1.93kB, 20ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 201
+  ✓  Amount comes from the gig price, not the client
+  ✓  Freelancer comes from the gig, not the client
+  ✓  Transaction created
+
+↳ 6.2 WRONG ROLE - Freelancer cannot book
+  POST https://localhost:4000/api/bookings [403 Forbidden, 1.29kB, 9ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 403
+
+↳ 6.3 Book - no token
+  POST https://localhost:4000/api/bookings [401 Unauthorized, 1.27kB, 3ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 401
+
+↳ 6.4 Book - missing gigId
+  POST https://localhost:4000/api/bookings [400 Bad Request, 1.31kB, 8ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 400
+  ✓  Generic validation error returned
+  ✓  Error names the field: gigId
+  ✓  Submitted value is not echoed back
+
+↳ 6.5 Book - malformed gigId
+  POST https://localhost:4000/api/bookings [400 Bad Request, 1.32kB, 7ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 400
+  ✓  Generic validation error returned
+  ✓  Error names the field: gigId
+  ✓  Submitted value is not echoed back
+
+↳ 6.6 Book - NoSQL operator object as gigId
+  POST https://localhost:4000/api/bookings [400 Bad Request, 1.32kB, 9ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 400
+  ✓  Generic validation error returned
+  ✓  Error names the field: gigId
+  ✓  Submitted value is not echoed back
+
+↳ 6.7 Book - valid id but gig does not exist
+  POST https://localhost:4000/api/bookings [404 Not Found, 1.25kB, 7ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 404
+  ✓  Not found message
+
+↳ 6.8 Client sees own bookings
+  GET https://localhost:4000/api/bookings [200 OK, 1.6kB, 20ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 200
+  ✓  Contains the booking
+
+↳ 6.9 Client reads own booking by id
+  GET https://localhost:4000/api/bookings/6aeec55a27d42054d8ef49e9 [200 OK, 1.6kB, 17ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 200
+
+↳ 6.10 Gig owner (Freelancer) reads the booking
+  GET https://localhost:4000/api/bookings/6aeec55a27d42054d8ef49e9 [200 OK, 1.6kB, 15ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 200
+
+↳ 6.11 ANOTHER USER'S BOOKING - unrelated Freelancer is refused
+  GET https://localhost:4000/api/bookings/6aeec55a27d42054d8ef49e9 [403 Forbidden, 1.28kB, 17ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 403
+  ✓  Access denied message
+
+↳ 6.12 Unrelated user's booking list does not leak others' bookings
+  GET https://localhost:4000/api/bookings [200 OK, 1.23kB, 9ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 200
+  ✓  Empty list
+
+↳ 6.13 Booking by id - malformed id
+  GET https://localhost:4000/api/bookings/abc [400 Bad Request, 1.32kB, 5ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 400
+  ✓  Generic validation error returned
+  ✓  Error names the field: id
+  ✓  Submitted value is not echoed back
+
+↳ 6.14 Booking by id - does not exist
+  GET https://localhost:4000/api/bookings/000000000000000000000000 [404 Not Found, 1.26kB, 8ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 404
+
+↳ 6.15 Admin may read any booking
+  GET https://localhost:4000/api/bookings/6aeec55a27d42054d8ef49e9 [200 OK, 1.6kB, 13ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 200
+
+↳ 6.16 Client sees own transactions
+  GET https://localhost:4000/api/transactions [200 OK, 1.54kB, 9ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 200
+  ✓  At least one transaction
+
+↳ 6.17 Unrelated Freelancer sees no transactions of others
+  GET https://localhost:4000/api/transactions [200 OK, 1.23kB, 10ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 200
+  ✓  Empty list
+
+↳ 6.18 Freelancer income summary
+  GET https://localhost:4000/api/transactions/income [200 OK, 1.27kB, 11ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 200
+  ✓  Income equals the booked gig price
+
+↳ 6.19 WRONG ROLE - Client cannot read income summary
+  GET https://localhost:4000/api/transactions/income [403 Forbidden, 1.29kB, 5ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 403
+
+❏ 07 Security Headers & CORS
+↳ 7.1 Helmet headers present on a normal response
+  GET https://localhost:4000/health [200 OK, 1.18kB, 2ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 200
+  ✓  CSP default-src is none
+  ✓  CSP blocks scripts and styles
+  ✓  CSP forbids framing, base tag and form posts
+  ✓  Strict-Transport-Security is set (>= 1 year)
+  ✓  X-Content-Type-Options is nosniff
+  ✓  X-Frame-Options is DENY
+  ✓  Referrer-Policy is no-referrer
+  ✓  Cross-Origin-Opener-Policy is same-origin
+  ✓  Cross-Origin-Resource-Policy is same-site
+  ✓  Permissions-Policy disables powerful features
+  ✓  Responses are not cacheable (Cache-Control: no-store)
+  ✓  X-Powered-By is not disclosed
+
+↳ 7.2 Security headers are also on error responses (404)
+  GET https://localhost:4000/api/does-not-exist [404 Not Found, 1.26kB, 2ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 404
+  ✓  CSP present on 404
+  ✓  nosniff present on 404
+
+↳ 7.3 CORS - allowed frontend origin is accepted
+  GET https://localhost:4000/health [200 OK, 1.18kB, 2ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 200
+  ✓  Access-Control-Allow-Origin echoes the allowed origin
+
+↳ 7.4 CORS - unknown origin is NOT granted access
+  GET https://localhost:4000/health [200 OK, 1.18kB, 5ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Untrusted origin is never allowed (header is not the evil origin and not *)
+  ✓  Only the configured frontend origin is advertised, so browsers block the evil origin
+
+❏ 08 Error Handling - no internals exposed
+↳ 8.1 Unknown route returns a clean JSON 404
+  GET https://localhost:4000/api/unknown [404 Not Found, 1.26kB, 2ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 404
+  ✓  Only a short error message is returned
+
+↳ 8.2 Unsupported method on a real route returns clean 404
+  PATCH https://localhost:4000/api/gigs/6aeec55927d42054d8ef49b2 [404 Not Found, 1.26kB, 6ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 404
+  ✓  Same generic shape
+
+↳ 8.3 Malformed JSON gives a 400, not a stack trace
+  POST https://localhost:4000/api/gigs [400 Bad Request, 1.27kB, 3ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 400
+  ✓  No parser internals in the response
+
+↳ 8.4 Every error uses the same {error} shape (invalid id)
+  GET https://localhost:4000/api/gigs/zzz [400 Bad Request, 1.32kB, 6ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 400
+  ✓  Has error + details only
+
+↳ 8.5 Request id header is returned for support / log tracing
+  GET https://localhost:4000/api/unknown [404 Not Found, 1.26kB, 2ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  X-Request-Id header is a UUID
+
+❏ 09 Admin Moderation & Clean-up
+↳ 9.1 Admin can delete another user's gig (moderation)
+  DELETE https://localhost:4000/api/gigs/6aeec55927d42054d8ef49bc [200 OK, 1.26kB, 15ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 200
+  ✓  Deleted
+
+↳ 9.2 Owner deletes own gig
+  DELETE https://localhost:4000/api/gigs/6aeec55927d42054d8ef49b7 [200 OK, 1.26kB, 13ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 200
+
+↳ 9.3 Deleting it again returns 404
+  DELETE https://localhost:4000/api/gigs/6aeec55927d42054d8ef49b7 [404 Not Found, 1.25kB, 14ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 404
+
+❏ 10 Final Part - Income Dashboard & Tax Estimate
+↳ 10.1 Freelancer dashboard (current tax year) returns income and tax
+  GET https://localhost:4000/api/transactions/dashboard [200 OK, 3.66kB, 14ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 200
+  ✓  Gross income equals the booked gig price
+  ✓  12 monthly buckets (Mar-Feb) that add up to the gross income
+  ✓  Top gigs list contains the booked gig
+  ✓  Tax block is complete: 7 SARS brackets, rebate, estimate
+  ✓  Tax maths: 18% bracket less rebate, never negative, take-home = income - tax
+  ✓  Disclaimer says this is an estimate
+
+↳ 10.2 Explicit taxYear returns the same period
+  GET https://localhost:4000/api/transactions/dashboard?taxYear=2027 [200 OK, 3.66kB, 15ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 200
+  ✓  Requested tax year echoed back
+
+↳ 10.3 Previous tax year has no income and no tax
+  GET https://localhost:4000/api/transactions/dashboard?taxYear=2026 [200 OK, 2.79kB, 15ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 200
+  ✓  Nothing earned in 2026 tax year
+
+↳ 10.4 Another freelancer only sees their own (zero) income
+  GET https://localhost:4000/api/transactions/dashboard [200 OK, 3.56kB, 11ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 200
+  ✓  No access to the other freelancer's income
+
+↳ 10.5 Unsupported tax year is rejected
+  GET https://localhost:4000/api/transactions/dashboard?taxYear=1999 [400 Bad Request, 1.35kB, 6ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 400
+  ✓  Validation error names taxYear
+
+↳ 10.6 Non-numeric tax year is rejected (and not echoed)
+  GET https://localhost:4000/api/transactions/dashboard?taxYear=%3Cscript%3E [400 Bad Request, 1.34kB, 5ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 400
+  ✓  Submitted value is not echoed back
+
+↳ 10.7 Repeated taxYear parameter is rejected
+  GET https://localhost:4000/api/transactions/dashboard?taxYear=2026&taxYear=2027 [400 Bad Request, 1.34kB, 4ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 400
+
+↳ 10.8 WRONG ROLE - Client cannot view the dashboard
+  GET https://localhost:4000/api/transactions/dashboard [403 Forbidden, 1.29kB, 5ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 403
+
+↳ 10.9 WRONG ROLE - Admin cannot view a freelancer dashboard
+  GET https://localhost:4000/api/transactions/dashboard [403 Forbidden, 1.29kB, 5ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 403
+
+↳ 10.10 Dashboard - no token
+  GET https://localhost:4000/api/transactions/dashboard [401 Unauthorized, 1.27kB, 3ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 401
+
+❏ 11 Final Part - Own Security Features (token revocation & account lockout)
+↳ 11.1 Register a dedicated account
+  POST https://localhost:4000/api/auth/register [201 Created, 1.4kB, 257ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 201
+
+↳ 11.2 Login - token A
+  POST https://localhost:4000/api/auth/login [200 OK, 1.6kB, 279ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 200
+
+↳ 11.3 Token A works before logout
+  GET https://localhost:4000/api/auth/profile [200 OK, 1.34kB, 5ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 200
+
+↳ 11.4 Logout revokes all tokens
+  POST https://localhost:4000/api/auth/logout [200 OK, 1.29kB, 15ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 200
+  ✓  Confirms tokens are invalid
+
+↳ 11.5 REVOKED TOKEN - token A is rejected after logout
+  GET https://localhost:4000/api/auth/profile [403 Forbidden, 1.26kB, 6ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 403
+  ✓  Generic message (does not say the token was revoked)
+
+↳ 11.6 Logout with the revoked token is also refused
+  POST https://localhost:4000/api/auth/logout [403 Forbidden, 1.26kB, 7ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 403
+
+↳ 11.7 Logout - no token
+  POST https://localhost:4000/api/auth/logout [401 Unauthorized, 1.27kB, 3ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 401
+
+↳ 11.8 Login again issues a fresh working token
+  POST https://localhost:4000/api/auth/login [200 OK, 1.6kB, 346ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 200
+
+↳ 11.9 New token B works
+  GET https://localhost:4000/api/auth/profile [200 OK, 1.34kB, 5ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 200
+
+↳ 11.10 Wrong password #1
+  POST https://localhost:4000/api/auth/login [401 Unauthorized, 1.26kB, 323ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 401
+  ✓  Generic message
+
+↳ 11.11 Wrong password #2
+  POST https://localhost:4000/api/auth/login [401 Unauthorized, 1.26kB, 328ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 401
+
+↳ 11.12 Wrong password #3 (reaches the lock threshold)
+  POST https://localhost:4000/api/auth/login [401 Unauthorized, 1.26kB, 337ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 401
+
+↳ 11.13 LOCKED - even the CORRECT password is refused
+  POST https://localhost:4000/api/auth/login [423 Locked, 1.31kB, 317ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 423
+  ✓  Locked message and no token issued
+
+↳ 11.14 Existing token B is unaffected by the lock on new logins
+  GET https://localhost:4000/api/auth/profile [200 OK, 1.34kB, 9ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 200
+
+❏ 12 Final Part - Admin Audit Trail
+↳ 12.1 Admin reads the audit trail
+  GET https://localhost:4000/api/admin/audit-logs?limit=100 [200 OK, 29.2kB, 34ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 200
+  ✓  Authentication, booking and transaction events are recorded
+  ✓  Entries are newest-first
+  ✓  No passwords, tokens or e-mail addresses are stored in the trail
+
+↳ 12.2 Filter by event name
+  GET https://localhost:4000/api/admin/audit-logs?event=auth.logout [200 OK, 1.91kB, 22ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 200
+  ✓  Only logout events returned
+
+↳ 12.3 Account lockout was audited
+  GET https://localhost:4000/api/admin/audit-logs?event=auth.account.locked [200 OK, 2.08kB, 27ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 200
+  ✓  A lockout event exists
+
+↳ 12.4 WRONG ROLE - Freelancer cannot read the audit trail
+  GET https://localhost:4000/api/admin/audit-logs [403 Forbidden, 1.29kB, 5ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 403
+
+↳ 12.5 WRONG ROLE - Client cannot read the audit trail
+  GET https://localhost:4000/api/admin/audit-logs [403 Forbidden, 1.29kB, 6ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 403
+
+↳ 12.6 Audit trail - no token
+  GET https://localhost:4000/api/admin/audit-logs [401 Unauthorized, 1.27kB, 2ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 401
+
+↳ 12.7 limit out of range is rejected
+  GET https://localhost:4000/api/admin/audit-logs?limit=1000 [400 Bad Request, 1.34kB, 5ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 400
+  ✓  Names the field: limit
+
+↳ 12.8 Unsafe event filter is rejected
+  GET https://localhost:4000/api/admin/audit-logs?event=x%24ne [400 Bad Request, 1.37kB, 5ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 400
+  ✓  Names the field: event
+
+❏ 13 Rate Limiting (keep LAST - it deliberately exhausts the limits)
+↳ 13.1 Login - 6th failed attempt for one account returns 429
+  POST https://localhost:4000/api/auth/login [401 Unauthorized, 1.26kB, 314ms]
+  POST https://localhost:4000/api/auth/login [401 Unauthorized, 1.26kB, 302ms]
+  POST https://localhost:4000/api/auth/login [401 Unauthorized, 1.26kB, 312ms]
+  POST https://localhost:4000/api/auth/login [401 Unauthorized, 1.26kB, 318ms]
+  POST https://localhost:4000/api/auth/login [401 Unauthorized, 1.26kB, 322ms]
+  POST https://localhost:4000/api/auth/login [429 Too Many Requests, 1.36kB, 3ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 429
+  ✓  Body has a meaningful error and retry time
+  ✓  Retry-After header is present and numeric
+  ✓  Standard RateLimit header is present
+  ✓  Response is JSON (not an HTML error page)
+  ✓  Message mentions the account lock
+
+↳ 13.2 Login - a different account is not locked out by that limit
+  POST https://localhost:4000/api/auth/login [200 OK, 1.6kB, 336ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 200
+  ✓  Valid login still succeeds
+
+↳ 13.3 Registration - limit on new accounts returns 429
+  POST https://localhost:4000/api/auth/register [429 Too Many Requests, 1.36kB, 3ms]
+  POST https://localhost:4000/api/auth/register [429 Too Many Requests, 1.36kB, 3ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 429
+  ✓  Body has a meaningful error and retry time
+  ✓  Retry-After header is present and numeric
+  ✓  Standard RateLimit header is present
+  ✓  Response is JSON (not an HTML error page)
+  ✓  Message mentions accounts
+
+↳ 13.4 Booking - more than 10 bookings per minute returns 429
+  POST https://localhost:4000/api/bookings [201 Created, 1.93kB, 18ms]
+  POST https://localhost:4000/api/bookings [201 Created, 1.93kB, 18ms]
+  POST https://localhost:4000/api/bookings [201 Created, 1.93kB, 15ms]
+  POST https://localhost:4000/api/bookings [201 Created, 1.93kB, 17ms]
+  POST https://localhost:4000/api/bookings [201 Created, 1.93kB, 15ms]
+  POST https://localhost:4000/api/bookings [429 Too Many Requests, 1.35kB, 10ms]
+  POST https://localhost:4000/api/bookings [429 Too Many Requests, 1.35kB, 5ms]
+  POST https://localhost:4000/api/bookings [429 Too Many Requests, 1.35kB, 6ms]
+  POST https://localhost:4000/api/bookings [429 Too Many Requests, 1.35kB, 9ms]
+  POST https://localhost:4000/api/bookings [429 Too Many Requests, 1.35kB, 5ms]
+  POST https://localhost:4000/api/bookings [429 Too Many Requests, 1.35kB, 6ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 429
+  ✓  Body has a meaningful error and retry time
+  ✓  Retry-After header is present and numeric
+  ✓  Standard RateLimit header is present
+  ✓  Response is JSON (not an HTML error page)
+  ✓  Message mentions bookings
+
+↳ 13.5 Rate limit is per user - a different user's request is still processed
+  GET https://localhost:4000/api/gigs [200 OK, 2.5kB, 12ms]
+  ✓  [global] No stack trace, file path or database error text in response
+  ✓  [global] Response carries X-Content-Type-Options: nosniff
+  ✓  Status code is 200
+
+┌─────────────────────────┬───────────────────┬───────────────────┐
+│                         │          executed │            failed │
+├─────────────────────────┼───────────────────┼───────────────────┤
+│              iterations │                 1 │                 0 │
+├─────────────────────────┼───────────────────┼───────────────────┤
+│                requests │               147 │                 0 │
+├─────────────────────────┼───────────────────┼───────────────────┤
+│            test-scripts │               262 │                 0 │
+├─────────────────────────┼───────────────────┼───────────────────┤
+│      prerequest-scripts │               139 │                 0 │
+├─────────────────────────┼───────────────────┼───────────────────┤
+│              assertions │               587 │                 0 │
+├─────────────────────────┴───────────────────┴───────────────────┤
+│ total run duration: 11.9s                                       │
+├─────────────────────────────────────────────────────────────────┤
+│ total data received: 62.96kB (approx)                           │
+├─────────────────────────────────────────────────────────────────┤
+│ average response time: 57ms [min: 2ms, max: 363ms, s.d.: 115ms] │
+└─────────────────────────────────────────────────────────────────┘

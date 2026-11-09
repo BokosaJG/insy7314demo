@@ -1,0 +1,21 @@
+$ # NoSQL injection on login
+$ curl -sk https://localhost:4000/api/auth/login -H 'Content-Type: application/json' -d '{"email":{"$gt":""},"password":{"$gt":""}}'
+{"error":"Validation failed","details":[{"field":"email","message":"email must be text"},{"field":"password","message":"password must be text"}]}
+HTTP 400
+
+$ # Stored XSS attempt in the name field
+$ curl -sk https://localhost:4000/api/auth/register -d '{"name":"<script>alert(1)</script>Mallory", ...}'
+{"message":"User registered successfully","data":{"id":"6ac5466831a48034f4b0c65d","name":"Mallory","email":"demo@example.com","role":"Client"}}
+HTTP 201
+
+$ # Privilege escalation: register as Admin
+{"error":"Validation failed","details":[{"field":"role","message":"role must be Client or Freelancer"}]}
+HTTP 400
+
+$ # Malformed JSON
+{"error":"Request body must be valid JSON"}
+HTTP 400
+
+$ # Unknown route
+{"error":"Route not found"}
+HTTP 404

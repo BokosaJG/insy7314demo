@@ -1,0 +1,23 @@
+Event counts from one full Newman run (587 assertions, 147 requests)
+
+ 148  http.request
+  13  authz.denied
+  10  auth.login.failure
+   9  auth.token.missing
+   9  ratelimit.exceeded
+   7  auth.login.success
+   6  auth.token.rejected
+   6  booking.created
+   6  transaction.created
+   5  auth.register.success
+   5  security.input.sanitised
+   3  error.unhandled
+   3  gig.created
+   2  gig.deleted
+   1  db.connected
+   1  server.started
+   1  auth.register.duplicate
+   1  gig.updated
+   1  auth.logout
+   1  auth.account.locked
+   1  auth.login.blocked_locked

@@ -1,0 +1,383 @@
+{
+  "info": {
+    "name": "HustleHub+ Part 1 - Secure Foundations",
+    "description": "Postman collection for testing the HustleHub+ Part 1 backend: user registration, login, JWT-protected routes, validation, and security headers. Uses the {{baseUrl}} and {{token}} variables from the 'HustleHub Local' environment.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Register - Valid User",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Ali Freelancer\",\n  \"email\": \"ali@example.com\",\n  \"password\": \"StrongPass1\",\n  \"role\": \"Freelancer\"\n}"
+        },
+        "url": { "raw": "{{baseUrl}}/api/auth/register", "host": ["{{baseUrl}}"], "path": ["api", "auth", "register"] }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 201', function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "pm.test('Response contains user id', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.data).to.have.property('id');",
+              "});",
+              "pm.test('Password hash is never returned', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.data).to.not.have.property('password');",
+              "    pm.expect(jsonData.data).to.not.have.property('passwordHash');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Register - Duplicate Email",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Ali Again\",\n  \"email\": \"ali@example.com\",\n  \"password\": \"StrongPass1\",\n  \"role\": \"Freelancer\"\n}"
+        },
+        "url": { "raw": "{{baseUrl}}/api/auth/register", "host": ["{{baseUrl}}"], "path": ["api", "auth", "register"] }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 409', function () {",
+              "    pm.response.to.have.status(409);",
+              "});",
+              "pm.test('Duplicate email error returned', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.error).to.eql('An account with this email already exists');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Register - Missing Fields",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"missing@example.com\"\n}"
+        },
+        "url": { "raw": "{{baseUrl}}/api/auth/register", "host": ["{{baseUrl}}"], "path": ["api", "auth", "register"] }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 400', function () {",
+              "    pm.response.to.have.status(400);",
+              "});",
+              "pm.test('Missing fields error returned', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.error).to.eql('Name, email, password and role are required');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Register - Weak Password",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Weak Pw\",\n  \"email\": \"weak@example.com\",\n  \"password\": \"weak\",\n  \"role\": \"Client\"\n}"
+        },
+        "url": { "raw": "{{baseUrl}}/api/auth/register", "host": ["{{baseUrl}}"], "path": ["api", "auth", "register"] }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 400', function () {",
+              "    pm.response.to.have.status(400);",
+              "});",
+              "pm.test('Weak password error returned', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.error).to.include('Password');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Register - Invalid Role",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Bad Role\",\n  \"email\": \"badrole@example.com\",\n  \"password\": \"StrongPass1\",\n  \"role\": \"Hacker\"\n}"
+        },
+        "url": { "raw": "{{baseUrl}}/api/auth/register", "host": ["{{baseUrl}}"], "path": ["api", "auth", "register"] }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 400', function () {",
+              "    pm.response.to.have.status(400);",
+              "});",
+              "pm.test('Invalid role error returned', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.error).to.eql('Role must be Client or Freelancer');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Login - Valid Credentials",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"ali@example.com\",\n  \"password\": \"StrongPass1\"\n}"
+        },
+        "url": { "raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "auth", "login"] }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test('Response contains a JWT token', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.token).to.be.a('string');",
+              "    pm.collectionVariables.set('token', jsonData.token);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Login - Wrong Password",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"ali@example.com\",\n  \"password\": \"WrongPass1\"\n}"
+        },
+        "url": { "raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "auth", "login"] }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 401', function () {",
+              "    pm.response.to.have.status(401);",
+              "});",
+              "pm.test('Generic invalid credentials error returned', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.error).to.eql('Invalid email or password');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "8. Login - Nonexistent User",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"nobody@example.com\",\n  \"password\": \"WrongPass1\"\n}"
+        },
+        "url": { "raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "auth", "login"] }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 401', function () {",
+              "    pm.response.to.have.status(401);",
+              "});",
+              "pm.test('Same generic error as wrong password (no user enumeration)', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.error).to.eql('Invalid email or password');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "9. Protected Profile - No Token",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/api/auth/profile", "host": ["{{baseUrl}}"], "path": ["api", "auth", "profile"] }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 401', function () {",
+              "    pm.response.to.have.status(401);",
+              "});",
+              "pm.test('Access token required error returned', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.error).to.eql('Access token is required');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "10. Protected Profile - Valid Token",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+        "url": { "raw": "{{baseUrl}}/api/auth/profile", "host": ["{{baseUrl}}"], "path": ["api", "auth", "profile"] }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test('Token payload contains id and role', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.data).to.have.property('id');",
+              "    pm.expect(jsonData.data).to.have.property('role');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "11. Protected Profile - Invalid Token",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer invalid.token.here" }],
+        "url": { "raw": "{{baseUrl}}/api/auth/profile", "host": ["{{baseUrl}}"], "path": ["api", "auth", "profile"] }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 403', function () {",
+              "    pm.response.to.have.status(403);",
+              "});",
+              "pm.test('Invalid token error returned', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.error).to.eql('Invalid or expired token');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "12. Invalid Route",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/api/unknown", "host": ["{{baseUrl}}"], "path": ["api", "unknown"] }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 404', function () {",
+              "    pm.response.to.have.status(404);",
+              "});",
+              "pm.test('Route not found error returned', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.error).to.eql('Route not found');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "13. Security Headers Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/health", "host": ["{{baseUrl}}"], "path": ["health"] }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Content-Security-Policy header is present', function () {",
+              "    pm.expect(pm.response.headers.has('Content-Security-Policy')).to.eql(true);",
+              "});",
+              "pm.test('X-Content-Type-Options header is present', function () {",
+              "    pm.expect(pm.response.headers.has('X-Content-Type-Options')).to.eql(true);",
+              "});",
+              "pm.test('X-Powered-By header is not exposed', function () {",
+              "    pm.expect(pm.response.headers.has('X-Powered-By')).to.eql(false);",
+              "});",
+              "pm.test('Protocol reported as HTTPS', function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.protocol).to.eql('HTTPS');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    { "key": "baseUrl", "value": "https://localhost:4000" },
+    { "key": "token", "value": "" }
+  ]
+}

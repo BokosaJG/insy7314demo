@@ -1,0 +1,7 @@
+# $ npm run audit:deps   (client)
+
+> hustlehub-plus-client@1.0.0 audit:deps
+> npm audit --omit=dev --audit-level=high
+
+found 0 vulnerabilities
+exit code: 0

@@ -1,0 +1,299 @@
+# HustleHub+ CI/CD pipeline (GitHub Actions)
+#
+# Runs on every push and pull request. Every job must pass; any failing test,
+# lint error, vulnerable dependency or failed scan fails the pipeline.
+#
+#   backend ──┐
+#   frontend ─┼──► docker (builds the whole stack, runs it, tests it, scans the images)
+#   security ─┘
+#   codeql (static analysis, runs in parallel)
+#                                   all ──► single "pipeline passed" gate
+
+name: CI
+
+on:
+  push:
+    branches: [main, master, develop]
+  pull_request:
+  workflow_dispatch:
+
+# Least privilege: jobs can only read the repository unless they say otherwise.
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: "22"
+
+jobs:
+  # ------------------------------------------------------------------ BACKEND
+  backend:
+    name: Backend - lint, unit tests, audit, API tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: hustlehub-plus-api
+    services:
+      mongo:
+        image: mongo:7.0
+        ports: ["27017:27017"]
+        options: >-
+          --health-cmd "mongosh --quiet --eval 'db.adminCommand(\"ping\").ok'"
+          --health-interval 5s --health-timeout 5s --health-retries 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: hustlehub-plus-api/package-lock.json
+
+      - name: Install dependencies (exact versions from the lockfile)
+        run: npm ci
+
+      - name: Static analysis - ESLint + eslint-plugin-security (fails on any warning)
+        run: npx eslint . --max-warnings 0
+
+      - name: Unit tests with coverage (fails below the coverage threshold)
+        run: npm run test:coverage
+
+      - name: Dependency vulnerability audit (production dependencies, fails on high/critical)
+        run: npm run audit:deps
+
+      - name: Create a throw-away TLS certificate for the API
+        run: |
+          mkdir -p certs
+          openssl req -x509 -newkey rsa:2048 -nodes -days 1 \
+            -keyout certs/localhost-key.pem -out certs/localhost-cert.pem \
+            -subj "/CN=localhost" -addext "subjectAltName=DNS:localhost,IP:127.0.0.1"
+
+      - name: Start the API over HTTPS
+        env:
+          PORT: 4000
+          NODE_ENV: development
+          USE_HTTPS: "true"
+          CLIENT_ORIGIN: http://localhost:8080   # must match the clientOrigin variable in the Newman collection
+          MONGO_URI: mongodb://localhost:27017/hustlehub_ci
+          ADMIN_NAME: CI Admin
+          ADMIN_EMAIL: admin@example.com
+          ADMIN_PASSWORD: ChangeMe123
+          ACCOUNT_LOCK_THRESHOLD: "3"
+        run: |
+          # A fresh random secret on every run - no secret is stored in the repository.
+          echo "JWT_SECRET=$(openssl rand -hex 32)" >> "$GITHUB_ENV"
+          export JWT_SECRET="$(grep ^JWT_SECRET "$GITHUB_ENV" | tail -1 | cut -d= -f2)"
+          npm run seed:admin
+          nohup node index.js > api.out 2>&1 &
+          for i in $(seq 1 30); do
+            curl -ksf https://localhost:4000/health && exit 0
+            sleep 1
+          done
+          echo "API did not become healthy"; cat api.out; exit 1
+
+      - name: API endpoint tests - Newman (fails if any assertion fails)
+        run: npm run test:api:ci
+
+      - name: Upload test evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-evidence
+          path: |
+            hustlehub-plus-api/reports/newman-report.json
+            hustlehub-plus-api/coverage/lcov-report
+            hustlehub-plus-api/logs/*.log
+            hustlehub-plus-api/api.out
+          if-no-files-found: warn
+
+  # ----------------------------------------------------------------- FRONTEND
+  frontend:
+    name: Frontend - lint, unit tests, audit, build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: hustlehub-plus-client
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: hustlehub-plus-client/package-lock.json
+
+      - name: Install dependencies (exact versions from the lockfile)
+        run: npm ci
+
+      - name: Static analysis - ESLint (security + React rules, fails on any warning)
+        run: npx eslint . --max-warnings 0
+
+      - name: Component tests with coverage (fails below the coverage threshold)
+        run: npm run test:coverage
+
+      - name: Dependency vulnerability audit (production dependencies, fails on high/critical)
+        run: npm run audit:deps
+
+      - name: Production build
+        run: npm run build
+
+      - name: Upload test evidence and build
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-evidence
+          path: |
+            hustlehub-plus-client/coverage/lcov-report
+            hustlehub-plus-client/dist
+          if-no-files-found: warn
+
+  # ------------------------------------------------- SECRETS / CONFIG / DOCKERFILES
+  security:
+    name: Security scans - secrets, misconfiguration, Dockerfiles
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Trivy - committed secrets, vulnerable dependencies and misconfiguration
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln,secret,misconfig
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: "1"
+
+      - name: Hadolint - API Dockerfile
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: hustlehub-plus-api/Dockerfile
+
+      - name: Hadolint - client Dockerfile
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: hustlehub-plus-client/Dockerfile
+
+  # ------------------------------------------------------------------ CODEQL
+  codeql:
+    name: Static analysis - CodeQL
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      actions: read            # CodeQL reads workflow-run info (fixes "Resource not accessible by integration")
+      contents: read
+      security-events: write   # upload results to the repository's Security tab
+    steps:
+      - uses: actions/checkout@v4
+      - uses: github/codeql-action/init@v3
+        with:
+          languages: javascript-typescript
+          queries: security-extended
+      - uses: github/codeql-action/analyze@v3
+        with:
+          category: /language:javascript-typescript
+
+  # ------------------------------------------------------------------ DOCKER
+  docker:
+    name: Docker - build, run the full stack, test it, scan the images
+    runs-on: ubuntu-latest
+    needs: [backend, frontend, security]
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: hustlehub-plus-api/package-lock.json
+
+      - name: Create the Compose settings (random secrets for this run only)
+        run: |
+          cat > .env <<EOF
+          MONGO_ROOT_USER=hustlehub
+          MONGO_ROOT_PASSWORD=$(openssl rand -hex 16)
+          JWT_SECRET=$(openssl rand -hex 32)
+          ADMIN_NAME=CI Admin
+          ADMIN_EMAIL=admin@example.com
+          ADMIN_PASSWORD=ChangeMe123
+          CLIENT_ORIGIN=http://localhost:8080
+          ACCOUNT_LOCK_THRESHOLD=3
+          EOF
+
+      - name: Build both images and start MongoDB + API + client (waits until all are healthy)
+        run: docker compose up -d --build --wait --wait-timeout 180
+
+      - name: Show running containers
+        run: docker compose ps
+
+      - name: Smoke test - web app is served with its security headers
+        run: |
+          curl -sf http://localhost:8080/healthz
+          curl -sf http://localhost:8080/ | grep -q 'id="root"'
+          curl -sI http://localhost:8080/ | grep -i '^content-security-policy:' | grep -q "default-src 'self'"
+          curl -sI http://localhost:8080/ | grep -i '^x-content-type-options: nosniff'
+
+      - name: Smoke test - client container proxies /api to the API container over HTTPS
+        run: |
+          code=$(curl -s -o /dev/null -w '%{http_code}' -X POST http://localhost:8080/api/auth/login \
+                 -H 'Content-Type: application/json' -d '{}')
+          echo "login with empty body via client proxy -> HTTP $code"
+          test "$code" = "400"
+
+      - name: API endpoint tests against the containerised API - Newman
+        working-directory: hustlehub-plus-api
+        run: |
+          npm ci --ignore-scripts
+          npx newman run postman/HustleHub-Plus-Final.postman_collection.json \
+            -e postman/HustleHub-Local.postman_environment.json \
+            --env-var clientOrigin=http://localhost:8080 \
+            --insecure -r cli,json --reporter-json-export reports/newman-docker-report.json
+
+      - name: Scan the API image (fails on fixable HIGH/CRITICAL vulnerabilities)
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: hustlehub-plus-api:local
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: "1"
+
+      - name: Scan the client image (fails on fixable HIGH/CRITICAL vulnerabilities)
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: hustlehub-plus-client:local
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: "1"
+
+      - name: Collect container logs
+        if: always()
+        run: docker compose logs --no-color > docker-compose.log
+
+      - name: Upload evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker-evidence
+          path: |
+            docker-compose.log
+            hustlehub-plus-api/reports/newman-docker-report.json
+          if-no-files-found: warn
+
+      - name: Tear down
+        if: always()
+        run: docker compose down -v
+
+  # --------------------------------------------------------------- GATE
+  all:
+    name: Pipeline passed
+    runs-on: ubuntu-latest
+    needs: [backend, frontend, security, codeql, docker]
+    steps:
+      - run: echo "All jobs passed - safe to merge."
